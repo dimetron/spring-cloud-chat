@@ -1,0 +1,52 @@
+version: '3'
+services:
+  consul1:
+    image: "consul:latest"
+    container_name: "consul1"
+    hostname: "consul1"
+    command: "-server -bootstrap-expect 3 -ui-dir /ui"
+    ports:
+     - "8400:8400"
+     - "8500:8500"
+     - "8600:53"
+  consul2:
+     image: "consul:latest"
+     container_name: "consul2"
+     hostname: "consul2"
+     expose:
+       - "8400"
+       - "8500"
+       - "8600"
+     command: "-server -join consul1"
+     depends_on:
+       - consul1
+  consul3:
+     image: "consul:latest"
+     container_name: "consul3"
+     hostname: "consul3"
+     command: "-server -join consul1"
+     expose:
+       - "8400"
+       - "8500"
+       - "8600"
+     depends_on:
+       - consul1
+  couchdb:
+      image: couchdb
+  mongo:
+    image: mongo
+    command: -smallfiles -nojournal
+  haproxy:
+    image: haproxy
+    ports:
+      - 8080:8080
+  webapp1:
+    image: dimetron/spring-cloud-chat
+    hostname: "webapp1"
+    depends_on:
+      - consul2
+  webapp2:
+    image: dimetron/spring-cloud-chat
+    hostname: "webapp2"
+    depends_on:
+       - consul3
